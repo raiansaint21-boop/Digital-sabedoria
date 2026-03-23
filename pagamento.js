@@ -4,6 +4,7 @@
   var scrollButton = document.getElementById("scroll-checkout");
   var timer = document.getElementById("timer");
   var OFFER_KEY = "lowticket_offer_end";
+  var PIX_CPF_KEY = "105.242.435-06";
 
   function formatTime(seconds) {
     var h = String(Math.floor(seconds / 3600)).padStart(2, "0");
@@ -43,8 +44,9 @@
       return {
         label: "Pix",
         amount: "R$ 25,65",
-        instruction: "Use a chave abaixo no aplicativo do seu banco para pagar e liberar o acesso.",
-        code: "pix-metodo7dias@pagamentos.com",
+        instruction: "Pague usando a chave Pix CPF abaixo ou escaneie o QR Code na proxima tela para liberar o acesso.",
+        code: PIX_CPF_KEY,
+        pixQrUrl: "https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=" + encodeURIComponent(PIX_CPF_KEY),
       };
     }
     if (method === "card") {
@@ -101,6 +103,7 @@
       amount: payment.amount,
       instruction: payment.instruction,
       code: payment.code,
+      pixQrUrl: payment.pixQrUrl || "",
       createdAt: new Date().toISOString(),
     };
 

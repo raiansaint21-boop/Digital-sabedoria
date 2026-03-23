@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pagamento Gerado | DigitalBlacks</title>
+  <title>Pagamento Gerado | Digital black Ebook</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -24,6 +24,7 @@
           <h3>Codigo para pagamento</h3>
           <p id="instruction">-</p>
           <p class="code" id="payment-code">-</p>
+          <img id="pix-qr" class="pix-qr" alt="QR Code Pix" hidden>
           <button id="copy-code" class="btn btn-primary copy-btn" type="button">Copiar codigo</button>
           <p id="copy-feedback" class="form-message" aria-live="polite"></p>
         </article>
@@ -42,6 +43,7 @@
       var intro = document.getElementById("success-intro");
       var copyButton = document.getElementById("copy-code");
       var copyFeedback = document.getElementById("copy-feedback");
+      var pixQr = document.getElementById("pix-qr");
 
       if (!orderRaw) {
         intro.textContent = "Nenhum pedido recente foi encontrado. Gere um pagamento na pagina principal.";
@@ -57,6 +59,11 @@
       document.getElementById("order-amount").textContent = order.amount || "-";
       document.getElementById("instruction").textContent = order.instruction || "-";
       document.getElementById("payment-code").textContent = order.code || "-";
+
+      if (order.method === "Pix" && order.pixQrUrl) {
+        pixQr.src = order.pixQrUrl;
+        pixQr.hidden = false;
+      }
 
       copyButton.addEventListener("click", async function () {
         try {
