@@ -1,0 +1,210 @@
+lowticket-site/
+├── index.html
+├── obrigado.html
+├── style.css
+└── pagamento.js
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plano 7 Dias — Organize Sua Vida</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Pixel Meta (opcional, troque ID) -->
+    <script>
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', 'SEU_PIXEL_ID');
+        fbq('track', 'PageView');
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- HERO -->
+        <section class="hero">
+            <span class="tag">🔥 Mais de 12.000 vendidos</span>
+            <h1>Organize sua vida financeira em <span class="highlight">7 dias</span> — sem planilha complexa</h1>
+            <p class="subhead">Método usado por freelancers que saíram do vermelho em 1 semana. PDF + vídeo + planilha automática.</p>
+            
+            <div class="mockup">
+                <div class="ebook-3d">📘</div>
+                <div class="bonus-badge">+2 BÔNUS</div>
+            </div>
+            
+            <div class="price-box">
+                <p class="old-price">De <s>R$ 97,00</s></p>
+                <p class="price">R$ 27,00</p>
+                <p class="installment">ou 2x de R$ 14,50 no cartão</p>
+                <button class="cta-main" onclick="scrollToCheckout()">Quero meu acesso imediato →</button>
+                <p class="guarantee">✓ 7 dias de garantia • Acesso vitalício • Atualizações grátis</p>
+            </div>
+        </section>
+
+        <!-- PROBLEMA -->
+        <section class="problem">
+            <h2>Você se identifica?</h2>
+            <div class="pain-points">
+                <div class="pain">😰 Fim do mês no vermelho, sem saber onde foi o dinheiro</div>
+                <div class="pain">😰 Planilhas complicadas que nunca consegue manter</div>
+                <div class="pain">😰 Dívidas pequenas que viram bola de neve</div>
+                <div class="pain">😰 Vergonha de olhar o extrato do banco</div>
+            </div>
+        </section>
+
+        <!-- SOLUÇÃO -->
+        <section class="solution">
+            <h2>O que você recebe:</h2>
+            <div class="deliverables">
+                <div class="item">
+                    <div class="icon">📄</div>
+                    <h3>Guia PDF 47 páginas</h3>
+                    <p>Método passo a passo, linguagem direta, zero enrolação</p>
+                </div>
+                <div class="item">
+                    <div class="icon">📊</div>
+                    <h3>Planilha Automática</h3>
+                    <p>Preenche sozinha. Só copia do seu banco e ela calcula tudo</p>
+                </div>
+                <div class="item">
+                    <div class="icon">🎥</div>
+                    <h3>Vídeo 23 min</h3>
+                    <p>Setup inicial em uma única sessão. Pronto em 30 minutos</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- PROVA SOCIAL -->
+        <section class="social-proof">
+            <h2>Resultados de quem aplicou:</h2>
+            <div class="testimonials">
+                <div class="card">
+                    <p>"Em 5 dias já sabia exatamente onde estava furando. Mês que vem fechei com sobra de R$ 340."</p>
+                    <div class="author">— Ana P., designer</div>
+                </div>
+                <div class="card">
+                    <p>"Parecia mágica. A planilha faz sozinha, eu só colo os dados do Nubank."</p>
+                    <div class="author">— Marcos T., dev freelancer</div>
+                </div>
+                <div class="card">
+                    <p>"Paguei R$ 27, economizei R$ 890 no primeiro mês só cortando assinaturas esquecidas."</p>
+                    <div class="author">— Juliana R., marketing</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- BÔNUS -->
+        <section class="bonuses">
+            <h2>Bônus por tempo limitado:</h2>
+            <div class="bonus-list">
+                <div class="bonus-item">
+                    <span class="bonus-tag">R$ 47 grátis</span>
+                    <h4>Checklist de Negociação de Dívidas</h4>
+                    <p>Reduza até 60% do valor em ligações de 10 min</p>
+                </div>
+                <div class="bonus-item">
+                    <span class="bonus-tag">R$ 97 grátis</span>
+                    <h4>Grupo de Suporte no WhatsApp</h4>
+                    <p>Tire dúvidas direto, veja casos reais de outros alunos</p>
+                </div>
+            </div>
+            <p class="urgency">⏰ Bônus saem em: <span id="timer">04:59:59</span></p>
+        </section>
+
+        <!-- CHECKOUT -->
+        <section class="checkout" id="checkout">
+            <h2>Escolha sua forma de pagamento:</h2>
+            
+            <div class="payment-options">
+                <button class="pay-btn pix" onclick="checkout('pix')">
+                    <span class="pay-icon">⚡</span>
+                    <div>
+                        <strong>Pagar com Pix</strong>
+                        <small>R$ 25,65 (5% off) • Acesso imediato</small>
+                    </div>
+                </button>
+                
+                <button class="pay-btn card" onclick="checkout('card')">
+                    <span class="pay-icon">💳</span>
+                    <div>
+                        <strong>Cartão de Crédito</strong>
+                        <small>2x R$ 14,50 sem juros • Aprovação na hora</small>
+                    </div>
+                </button>
+                
+                <button class="pay-btn boleto" onclick="checkout('boleto')">
+                    <span class="pay-icon">📄</span>
+                    <div>
+                        <strong>Boleto Bancário</strong>
+                        <small>R$ 27,00 • Compensação em 1 dia útil</small>
+                    </div>
+                </button>
+            </div>
+            
+            <div class="security-badges">
+                <span>🔒 SSL Seguro</span>
+                <span>✓ Reembolso 7 dias</span>
+                <span>⭐ 4.9/5 (2.847 avaliações)</span>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section class="faq">
+            <h2>Dúvidas comuns:</h2>
+            <details>
+                <summary>Como recebo o material?</summary>
+                <p>Imediatamente após confirmação do pagamento. Link enviado por e-mail e WhatsApp.</p>
+            </details>
+            <details>
+                <summary>Precisa de conhecimento em Excel?</summary>
+                <p>Nenhum. A planilha é Google Sheets, funciona no celular, tudo automático.</p>
+            </details>
+            <details>
+                <summary>E se não funcionar para mim?</summary>
+                <p>7 dias de garantia incondicional. Pediu, devolvemos 100% sem perguntas.</p>
+            </details>
+        </section>
+
+        <!-- FOOTER -->
+        <footer>
+            <p>© 2024 Método 7 Dias. CNPJ 12.345.678/0001-90</p>
+            <p><a href="#">Política de Privacidade</a> • <a href="#">Termos de Uso</a></p>
+        </footer>
+    </div>
+
+    <script src="pagamento.js"></script>
+    <script>
+        // Timer regressivo
+        function updateTimer() {
+            const el = document.getElementById('timer');
+            let [h, m, s] = el.textContent.split(':').map(Number);
+            let total = h * 3600 + m * 60 + s;
+            total = Math.max(0, total - 1);
+            h = String(Math.floor(total / 3600)).padStart(2, '0');
+            m = String(Math.floor((total % 3600) / 60)).padStart(2, '0');
+            s = String(total % 60).padStart(2, '0');
+            el.textContent = `${h}:${m}:${s}`;
+        }
+        setInterval(updateTimer, 1000);
+        
+        function scrollToCheckout() {
+            document.getElementById('checkout').scrollIntoView({behavior: 'smooth'});
+        }
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagamento Confirmado — Acesso Liberado</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container success-page">
