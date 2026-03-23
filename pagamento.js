@@ -5,6 +5,8 @@
   var timer = document.getElementById("timer");
   var OFFER_KEY = "lowticket_offer_end";
   var PIX_CPF_KEY = "105.242.435-06";
+  var PIX_RECEIVER_NAME = "DIGITAL BLACKS";
+  var PIX_RECEIVER_CITY = "SALVADOR";
 
   function formatTime(seconds) {
     var h = String(Math.floor(seconds / 3600)).padStart(2, "0");
@@ -39,14 +41,81 @@
     return value.replace(/\D/g, "");
   }
 
-  function paymentData(method) {
+  function padField(id, value) {
+    var stringValue = String(value);
+    return id + String(stringValue.length).padStart(2, "0") + stringValue;
+  }
+
+  function sanitizePixText(value) {
+    return value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^A-Za-z0-9 ]/g, "")
+      .trim()
+      .toUpperCase();
+  }
+
+  function crc16(payload) {
+    var polinomio = 0x1021;
+    var resultado = 0xffff;
+    for (var i = 0; i < payload.length; i++) {
+      resultado ^= payload.charCodeAt(i) << 8;
+      for (var j = 0; j < 8; j++) {
+        if ((resultado & 0x8000) !== 0) {
+          resultado = (resultado << 1) ^ polinomio;
+        } else {
+          resultado = resultado << 1;
+        }
+        resultado &= 0xffff;
+      }
+    }
+    return resultado.toString(16).toUpperCase().padStart(4, "0");
+  }
+
+  function buildPixPayload(options) {
+    var pixKey = options.pixKey.replace(/\D/g, "");
+    var merchantName = sanitizePixText(options.merchantName).slice(0, 25) || "RECEBEDOR";
+    var merchantCity = sanitizePixText(options.merchantCity).slice(0, 15) || "SAO PAULO";
+    var txid = sanitizePixText(options.txid || "***").replace(/\s/g, "").slice(0, 25) || "***";
+    var amount = Number(options.amount).toFixed(2);
+
+    var gui = padField("00", "BR.GOV.BCB.PIX");
+    var keyField = padField("01", pixKey);
+    var merchantAccountInfo = padField("26", gui + keyField);
+    var additionalData = padField("62", padField("05", txid));
+
+    var payloadSemCrc =
+      padField("00", "01") +
+      merchantAccountInfo +
+      padField("52", "0000") +
+      padField("53", "986") +
+      padField("54", amount) +
+      padField("58", "BR") +
+      padField("59", merchantName) +
+      padField("60", merchantCity) +
+      additionalData +
+      "6304";
+
+    return payloadSemCrc + crc16(payloadSemCrc);
+  }
+
+  function paymentData(method, orderId) {
     if (method === "pix") {
+      var pixPayload = buildPixPayload({
+        pixKey: PIX_CPF_KEY,
+        merchantName: PIX_RECEIVER_NAME,
+        merchantCity: PIX_RECEIVER_CITY,
+        txid: orderId,
+        amount: 25.65,
+      });
+
       return {
         label: "Pix",
         amount: "R$ 25,65",
-        instruction: "Pague usando a chave Pix CPF abaixo ou escaneie o QR Code na proxima tela para liberar o acesso.",
-        code: PIX_CPF_KEY,
-        pixQrUrl: "https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=" + encodeURIComponent(PIX_CPF_KEY),
+        instruction: "Use a chave Pix CPF 105.242.435-06 ou escaneie o QR Code. O codigo abaixo e o Pix Copia e Cola.",
+        code: pixPayload,
+        pixKey: PIX_CPF_KEY,
+        pixQrUrl: "https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=" + encodeURIComponent(pixPayload),
       };
     }
     if (method === "card") {
@@ -93,9 +162,10 @@
       return;
     }
 
-    var payment = paymentData(data.method);
+    var orderId = "LT-" + Date.now().toString().slice(-8);
+    var payment = paymentData(data.method, orderId);
     var order = {
-      id: "LT-" + Date.now().toString().slice(-8),
+      id: orderId,
       buyerName: data.name,
       buyerEmail: data.email,
       buyerPhone: data.phone,
