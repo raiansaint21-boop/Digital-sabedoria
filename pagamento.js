@@ -7,6 +7,7 @@
   var PIX_CPF_KEY = "105.242.435-06";
   var PIX_RECEIVER_NAME = "DIGITAL BLACKS";
   var PIX_RECEIVER_CITY = "SALVADOR";
+  var OFFER_PRICE = 27.0;
 
   function formatTime(seconds) {
     var h = String(Math.floor(seconds / 3600)).padStart(2, "0");
@@ -55,6 +56,16 @@
       .toUpperCase();
   }
 
+  function normalizePixKey(rawKey) {
+    var key = String(rawKey || "").trim();
+    var digits = key.replace(/\D/g, "");
+
+    if (digits.length === 11 || digits.length === 14) return digits;
+    if (key.indexOf("@") !== -1) return key.toLowerCase();
+    if (key.charAt(0) === "+") return "+" + digits;
+    return key.replace(/[^\w\-./:@+]/g, "");
+  }
+
   function crc16(payload) {
     var polinomio = 0x1021;
     var resultado = 0xffff;
@@ -73,7 +84,7 @@
   }
 
   function buildPixPayload(options) {
-    var pixKey = options.pixKey.replace(/\D/g, "");
+    var pixKey = normalizePixKey(options.pixKey);
     var merchantName = sanitizePixText(options.merchantName).slice(0, 25) || "RECEBEDOR";
     var merchantCity = sanitizePixText(options.merchantCity).slice(0, 15) || "SAO PAULO";
     var txid = sanitizePixText(options.txid || "***").replace(/\s/g, "").slice(0, 25) || "***";
@@ -86,6 +97,7 @@
 
     var payloadSemCrc =
       padField("00", "01") +
+      padField("01", "11") +
       merchantAccountInfo +
       padField("52", "0000") +
       padField("53", "986") +
@@ -100,37 +112,28 @@
   }
 
   function paymentData(method, orderId) {
-    if (method === "pix") {
-      var pixPayload = buildPixPayload({
-        pixKey: PIX_CPF_KEY,
-        merchantName: PIX_RECEIVER_NAME,
-        merchantCity: PIX_RECEIVER_CITY,
-        txid: orderId,
-        amount: 25.65,
-      });
+    var pixPayload = buildPixPayload({
+      pixKey: PIX_CPF_KEY,
+      merchantName: PIX_RECEIVER_NAME,
+      merchantCity: PIX_RECEIVER_CITY,
+      txid: orderId,
+      amount: OFFER_PRICE,
+    });
 
-      return {
-        label: "Pix",
-        amount: "R$ 25,65",
-        instruction: "Use a chave Pix CPF 105.242.435-06 ou escaneie o QR Code. O codigo abaixo e o Pix Copia e Cola.",
-        code: pixPayload,
-        pixKey: PIX_CPF_KEY,
-        pixQrUrl: "https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=" + encodeURIComponent(pixPayload),
-      };
-    }
-    if (method === "card") {
-      return {
-        label: "Cartao de credito",
-        amount: "2x de R$ 14,50",
-        instruction: "A compra sera aprovada em instantes. O acesso sera liberado automaticamente.",
-        code: "AUTORIZACAO-IMEDIATA",
-      };
-    }
+    var converted = method === "card" || method === "boleto";
+    var methodLabel = converted ? "Pix (confirmacao imediata)" : "Pix";
+    var baseInstruction = "Escaneie o QR Code no aplicativo do seu banco ou use o Pix Copia e Cola abaixo.";
+
     return {
-      label: "Boleto",
+      label: methodLabel,
+      originalMethod: method,
       amount: "R$ 27,00",
-      instruction: "Copie o codigo e pague no app do banco. Liberacao apos compensacao.",
-      code: "34191.79001 01043.510047 91020.150008 5 95280000002700",
+      instruction: converted
+        ? "Para evitar indisponibilidade de instituicao em compensacao, o pagamento foi convertido para Pix. " + baseInstruction
+        : baseInstruction,
+      code: pixPayload,
+      pixKey: PIX_CPF_KEY,
+      pixQrUrl: "https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=" + encodeURIComponent(pixPayload),
     };
   }
 
@@ -169,6 +172,7 @@
       buyerName: data.name,
       buyerEmail: data.email,
       buyerPhone: data.phone,
+      selectedMethod: data.method,
       method: payment.label,
       amount: payment.amount,
       instruction: payment.instruction,

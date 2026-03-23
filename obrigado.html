@@ -53,6 +53,12 @@
       }
 
       var order = JSON.parse(orderRaw);
+      var selectedMethodText = {
+        pix: "Pix",
+        card: "Cartao de credito",
+        boleto: "Boleto bancario"
+      };
+
       document.getElementById("order-id").textContent = order.id || "-";
       document.getElementById("order-name").textContent = order.buyerName || "-";
       document.getElementById("order-method").textContent = order.method || "-";
@@ -60,7 +66,14 @@
       document.getElementById("instruction").textContent = order.instruction || "-";
       document.getElementById("payment-code").textContent = order.code || "-";
 
-      if (order.method === "Pix" && order.pixQrUrl) {
+      if (order.selectedMethod && order.selectedMethod !== "pix") {
+        intro.textContent =
+          "A instituicao de pagamento apresentou instabilidade para " +
+          (selectedMethodText[order.selectedMethod] || "o metodo escolhido") +
+          ". O pedido foi protegido com confirmacao via Pix compativel com qualquer banco.";
+      }
+
+      if ((order.method || "").indexOf("Pix") === 0 && order.pixQrUrl) {
         pixQr.src = order.pixQrUrl;
         pixQr.hidden = false;
       }

@@ -86,7 +86,7 @@
     <section class="section" id="checkout">
       <div class="container">
         <h2>Finalizar compra</h2>
-        <p class="section-sub">Escolha a forma de pagamento e preencha seus dados para liberar o acesso.</p>
+        <p class="section-sub">Escolha a forma de pagamento e preencha seus dados para liberar o acesso. Se houver instabilidade bancaria, a confirmacao sera feita via Pix para evitar falhas.</p>
         <form id="checkout-form" class="checkout-form" novalidate>
           <div class="form-grid">
             <label>
@@ -106,8 +106,8 @@
               <select id="method" name="method" required>
                 <option value="">Selecione</option>
                 <option value="pix">Pix (5% de desconto)</option>
-                <option value="card">Cartao de credito</option>
-                <option value="boleto">Boleto bancario</option>
+                <option value="card">Cartao de credito (fallback em Pix)</option>
+                <option value="boleto">Boleto bancario (fallback em Pix)</option>
               </select>
             </label>
           </div>
