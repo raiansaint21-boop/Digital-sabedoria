@@ -24,6 +24,7 @@
           <h3>Codigo para pagamento</h3>
           <p id="instruction">-</p>
           <p class="code" id="payment-code">-</p>
+          <p><strong>Chave Pix:</strong> <span id="pix-key">-</span></p>
           <img id="pix-qr" class="pix-qr" alt="QR Code Pix" hidden>
           <button id="copy-code" class="btn btn-primary copy-btn" type="button">Copiar codigo</button>
           <p id="copy-feedback" class="form-message" aria-live="polite"></p>
@@ -65,17 +66,23 @@
       document.getElementById("order-amount").textContent = order.amount || "-";
       document.getElementById("instruction").textContent = order.instruction || "-";
       document.getElementById("payment-code").textContent = order.code || "-";
+      document.getElementById("pix-key").textContent = order.pixKey || "-";
 
       if (order.selectedMethod && order.selectedMethod !== "pix") {
         intro.textContent =
-          "A instituicao de pagamento apresentou instabilidade para " +
+          "O metodo " +
           (selectedMethodText[order.selectedMethod] || "o metodo escolhido") +
-          ". O pedido foi protegido com confirmacao via Pix compativel com qualquer banco.";
+          " foi processado em Pix para manter compatibilidade com bancos como Nubank, Inter e outros.";
       }
 
       if ((order.method || "").indexOf("Pix") === 0 && order.pixQrUrl) {
         pixQr.src = order.pixQrUrl;
         pixQr.hidden = false;
+        pixQr.onerror = function () {
+          if (order.pixQrFallbackUrl && pixQr.src !== order.pixQrFallbackUrl) {
+            pixQr.src = order.pixQrFallbackUrl;
+          }
+        };
       }
 
       copyButton.addEventListener("click", async function () {

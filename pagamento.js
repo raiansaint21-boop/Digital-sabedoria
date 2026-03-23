@@ -4,7 +4,7 @@
   var scrollButton = document.getElementById("scroll-checkout");
   var timer = document.getElementById("timer");
   var OFFER_KEY = "lowticket_offer_end";
-  var PIX_CPF_KEY = "105.242.435-06";
+  var PIX_DEFAULT_KEYS = ["105.242.435-06"];
   var PIX_RECEIVER_NAME = "DIGITAL BLACKS";
   var PIX_RECEIVER_CITY = "SALVADOR";
   var OFFER_PRICE = 27.0;
@@ -66,6 +66,95 @@
     return key.replace(/[^\w\-./:@+]/g, "");
   }
 
+  function onlyDigits(value) {
+    return String(value || "").replace(/\D/g, "");
+  }
+
+  function isRepeatedDigits(value) {
+    return /^(\d)\1+$/.test(value);
+  }
+
+  function isValidCpf(value) {
+    var cpf = onlyDigits(value);
+    if (cpf.length !== 11 || isRepeatedDigits(cpf)) return false;
+
+    var sum = 0;
+    for (var i = 0; i < 9; i++) sum += Number(cpf.charAt(i)) * (10 - i);
+    var firstDigit = (sum * 10) % 11;
+    if (firstDigit === 10) firstDigit = 0;
+    if (firstDigit !== Number(cpf.charAt(9))) return false;
+
+    sum = 0;
+    for (var j = 0; j < 10; j++) sum += Number(cpf.charAt(j)) * (11 - j);
+    var secondDigit = (sum * 10) % 11;
+    if (secondDigit === 10) secondDigit = 0;
+    return secondDigit === Number(cpf.charAt(10));
+  }
+
+  function isValidCnpj(value) {
+    var cnpj = onlyDigits(value);
+    if (cnpj.length !== 14 || isRepeatedDigits(cnpj)) return false;
+
+    var calc = function (size) {
+      var sum = 0;
+      var pos = size - 7;
+      for (var i = size; i >= 1; i--) {
+        sum += Number(cnpj.charAt(size - i)) * pos--;
+        if (pos < 2) pos = 9;
+      }
+      var result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+      return result;
+    };
+
+    return calc(12) === Number(cnpj.charAt(12)) && calc(13) === Number(cnpj.charAt(13));
+  }
+
+  function detectPixKeyType(value) {
+    var key = normalizePixKey(value);
+    var digits = onlyDigits(key);
+
+    if (isValidCpf(digits)) return "cpf";
+    if (isValidCnpj(digits)) return "cnpj";
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(key)) return "email";
+    if (/^\+\d{10,15}$/.test(key)) return "phone";
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(key)) return "evp";
+    return "";
+  }
+
+  function getConfiguredPixKeys() {
+    var queryParams = new URLSearchParams(window.location.search);
+    var queryKey = queryParams.get("pixKey");
+    var localKeysRaw = localStorage.getItem("lowticket_pix_keys");
+    var localKeys = localKeysRaw ? localKeysRaw.split(",") : [];
+    var candidateKeys = [];
+
+    if (queryKey) candidateKeys.push(queryKey);
+    for (var i = 0; i < localKeys.length; i++) candidateKeys.push(localKeys[i]);
+    for (var j = 0; j < PIX_DEFAULT_KEYS.length; j++) candidateKeys.push(PIX_DEFAULT_KEYS[j]);
+
+    var uniqueKeys = [];
+    for (var k = 0; k < candidateKeys.length; k++) {
+      var normalized = normalizePixKey(candidateKeys[k]);
+      if (!normalized || uniqueKeys.indexOf(normalized) !== -1) continue;
+      uniqueKeys.push(normalized);
+    }
+    return uniqueKeys;
+  }
+
+  function getValidPixDestination() {
+    var keys = getConfiguredPixKeys();
+    for (var i = 0; i < keys.length; i++) {
+      var keyType = detectPixKeyType(keys[i]);
+      if (keyType) {
+        return {
+          key: keys[i],
+          type: keyType,
+        };
+      }
+    }
+    return null;
+  }
+
   function crc16(payload) {
     var polinomio = 0x1021;
     var resultado = 0xffff;
@@ -112,8 +201,13 @@
   }
 
   function paymentData(method, orderId) {
+    var destination = getValidPixDestination();
+    if (!destination) {
+      throw new Error("Chave Pix invalida. Configure uma chave Pix real no checkout.");
+    }
+
     var pixPayload = buildPixPayload({
-      pixKey: PIX_CPF_KEY,
+      pixKey: destination.key,
       merchantName: PIX_RECEIVER_NAME,
       merchantCity: PIX_RECEIVER_CITY,
       txid: orderId,
@@ -129,11 +223,15 @@
       originalMethod: method,
       amount: "R$ 27,00",
       instruction: converted
-        ? "Para evitar indisponibilidade de instituicao em compensacao, o pagamento foi convertido para Pix. " + baseInstruction
+        ? "Para evitar falhas de confirmacao, o pagamento foi processado em Pix. " + baseInstruction
         : baseInstruction,
       code: pixPayload,
-      pixKey: PIX_CPF_KEY,
-      pixQrUrl: "https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=" + encodeURIComponent(pixPayload),
+      pixKey: destination.key,
+      pixKeyType: destination.type,
+      pixQrUrls: [
+        "https://quickchart.io/qr?size=280&text=" + encodeURIComponent(pixPayload),
+        "https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=" + encodeURIComponent(pixPayload),
+      ],
     };
   }
 
@@ -165,8 +263,16 @@
       return;
     }
 
-    var orderId = "LT-" + Date.now().toString().slice(-8);
-    var payment = paymentData(data.method, orderId);
+    var orderId = "LT" + Date.now().toString(36).toUpperCase();
+    var payment;
+    try {
+      payment = paymentData(data.method, orderId);
+    } catch (pixError) {
+      message.textContent = pixError.message || "Nao foi possivel gerar o Pix.";
+      message.className = "form-message error";
+      return;
+    }
+
     var order = {
       id: orderId,
       buyerName: data.name,
@@ -177,7 +283,10 @@
       amount: payment.amount,
       instruction: payment.instruction,
       code: payment.code,
-      pixQrUrl: payment.pixQrUrl || "",
+      pixKey: payment.pixKey || "",
+      pixKeyType: payment.pixKeyType || "",
+      pixQrUrl: payment.pixQrUrls && payment.pixQrUrls[0] ? payment.pixQrUrls[0] : "",
+      pixQrFallbackUrl: payment.pixQrUrls && payment.pixQrUrls[1] ? payment.pixQrUrls[1] : "",
       createdAt: new Date().toISOString(),
     };
 
