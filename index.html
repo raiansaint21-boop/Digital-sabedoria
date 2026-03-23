@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plano 7 Dias | Oferta Low Ticket</title>
+  <meta name="description" content="Organize sua vida financeira em 7 dias com um metodo simples. Oferta low ticket com acesso imediato.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-content">
+      <strong class="brand">Metodo 7 Dias</strong>
+      <span class="trust-badge">Compra segura</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="pill">Mais de 12.000 acessos vendidos</p>
+          <h1>Aprenda a organizar sua vida financeira em 7 dias</h1>
+          <p class="lead">Um treinamento direto ao ponto para sair do descontrole e ter clareza do seu dinheiro sem planilhas complicadas.</p>
+          <ul class="hero-list">
+            <li>Guia em PDF com passo a passo</li>
+            <li>Planilha automatica pronta para uso</li>
+            <li>Aula rapida de implementacao</li>
+          </ul>
+          <button id="scroll-checkout" class="btn btn-primary" type="button">Quero acesso agora</button>
+          <p class="meta-note">Garantia incondicional de 7 dias</p>
+        </div>
+        <aside class="offer-card">
+          <p class="old-price">De R$ 97,00</p>
+          <p class="price">R$ 27,00</p>
+          <p class="installment">ou 2x de R$ 14,50 no cartao</p>
+          <div class="countdown">
+            <span>Oferta encerra em:</span>
+            <strong id="timer">04:59:59</strong>
+          </div>
+          <p class="small-trust">Acesso vitalicio + atualizacoes gratuitas</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2>Para quem esta cansado de:</h2>
+        <div class="grid-3">
+          <article class="card">
+            <h3>Fechar o mes no vermelho</h3>
+            <p>Entenda exatamente para onde o dinheiro esta indo e recupere controle.</p>
+          </article>
+          <article class="card">
+            <h3>Abandonar planilhas complexas</h3>
+            <p>Use um metodo simples que cabe na rotina e funciona de verdade.</p>
+          </article>
+          <article class="card">
+            <h3>Viver no piloto automatico</h3>
+            <p>Tenha clareza para decidir melhor e sobrar dinheiro no fim do mes.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt">
+      <div class="container">
+        <h2>O que esta incluso</h2>
+        <div class="grid-3">
+          <article class="card">
+            <h3>PDF Metodo 7 Dias</h3>
+            <p>Material pratico com instrucoes diretas para implementar em uma semana.</p>
+          </article>
+          <article class="card">
+            <h3>Planilha automatica</h3>
+            <p>Basta inserir seus dados para visualizar gastos, metas e pontos de ajuste.</p>
+          </article>
+          <article class="card">
+            <h3>Video de configuracao</h3>
+            <p>Aula curta para deixar tudo pronto em menos de 30 minutos.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="checkout">
+      <div class="container">
+        <h2>Finalizar compra</h2>
+        <p class="section-sub">Escolha a forma de pagamento e preencha seus dados para liberar o acesso.</p>
+        <form id="checkout-form" class="checkout-form" novalidate>
+          <div class="form-grid">
+            <label>
+              Nome completo
+              <input id="name" name="name" type="text" required placeholder="Seu nome">
+            </label>
+            <label>
+              E-mail
+              <input id="email" name="email" type="email" required placeholder="voce@exemplo.com">
+            </label>
+            <label>
+              WhatsApp
+              <input id="phone" name="phone" type="tel" required placeholder="(11) 99999-9999">
+            </label>
+            <label>
+              Forma de pagamento
+              <select id="method" name="method" required>
+                <option value="">Selecione</option>
+                <option value="pix">Pix (5% de desconto)</option>
+                <option value="card">Cartao de credito</option>
+                <option value="boleto">Boleto bancario</option>
+              </select>
+            </label>
+          </div>
+          <label class="checkbox">
+            <input id="terms" name="terms" type="checkbox" required>
+            <span>Concordo com os termos de uso e politica de privacidade.</span>
+          </label>
+          <button id="pay-btn" class="btn btn-primary" type="submit">Gerar pagamento</button>
+          <p id="form-message" class="form-message" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+
+    <section class="section alt">
+      <div class="container">
+        <h2>Perguntas frequentes</h2>
+        <details>
+          <summary>Quando o acesso e liberado?</summary>
+          <p>No cartao, na hora. No Pix, apos confirmacao. No boleto, apos compensacao bancaria.</p>
+        </details>
+        <details>
+          <summary>Tem garantia?</summary>
+          <p>Sim. A compra tem garantia incondicional de 7 dias.</p>
+        </details>
+        <details>
+          <summary>Serve para iniciantes?</summary>
+          <p>Sim. O material foi feito para quem esta comecando do zero.</p>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>© 2026 Metodo 7 Dias. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+  <script src="pagamento.js"></script>
+</body>
+</html>
