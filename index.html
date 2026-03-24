@@ -86,38 +86,8 @@
     <section class="section" id="checkout">
       <div class="container">
         <h2>Finalizar compra</h2>
-        <p class="section-sub">Escolha a forma de pagamento e preencha seus dados para liberar o acesso. O pagamento via Pix usa QR Code e Pix Copia e Cola no padrao BR Code, compativel com apps bancarios.</p>
-        <form id="checkout-form" class="checkout-form" novalidate>
-          <div class="form-grid">
-            <label>
-              Nome completo
-              <input id="name" name="name" type="text" required placeholder="Seu nome">
-            </label>
-            <label>
-              E-mail
-              <input id="email" name="email" type="email" required placeholder="voce@exemplo.com">
-            </label>
-            <label>
-              WhatsApp
-              <input id="phone" name="phone" type="tel" required placeholder="(11) 99999-9999">
-            </label>
-            <label>
-              Forma de pagamento
-              <select id="method" name="method" required>
-                <option value="">Selecione</option>
-                <option value="pix">Pix (5% de desconto)</option>
-                <option value="card">Cartao de credito (processado em Pix)</option>
-                <option value="boleto">Boleto bancario (processado em Pix)</option>
-              </select>
-            </label>
-          </div>
-          <label class="checkbox">
-            <input id="terms" name="terms" type="checkbox" required>
-            <span>Concordo com os termos de uso e politica de privacidade.</span>
-          </label>
-          <button id="pay-btn" class="btn btn-primary" type="submit">Gerar pagamento</button>
-          <p id="form-message" class="form-message" aria-live="polite"></p>
-        </form>
+        <p class="section-sub">O pagamento agora e feito em uma pagina segura. Clique no botao abaixo para concluir a compra.</p>
+        <a id="pay-btn" class="btn btn-primary" href="https://pay.cakto.com.br/47v8e6o_816762" target="_blank" rel="noopener noreferrer">Ir para pagamento</a>
       </div>
     </section>
 
