@@ -1,5 +1,20 @@
 var getMercadoPagoAccessToken = require("./_lib/get-mercado-pago-token").getMercadoPagoAccessToken;
 
+function extractMercadoPagoError(data) {
+  if (!data || typeof data !== "object") return "Erro desconhecido";
+  if (typeof data.message === "string" && data.message.trim()) return data.message.trim();
+  if (typeof data.error_description === "string" && data.error_description.trim()) return data.error_description.trim();
+  if (typeof data.error === "string" && data.error.trim()) return data.error.trim();
+  if (Array.isArray(data.cause) && data.cause.length > 0) {
+    var cause = data.cause[0];
+    if (cause && typeof cause.description === "string" && cause.description.trim()) {
+      return cause.description.trim();
+    }
+  }
+
+  return "Erro desconhecido";
+}
+
 exports.handler = async function (event) {
   if (event.httpMethod !== "GET") {
     return {
@@ -18,7 +33,7 @@ exports.handler = async function (event) {
       statusCode: 500,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        error: "Configuracao incompleta: defina MERCADO_PAGO_ACCESS_TOKEN (ou MERCADO_PAGO_ACESS_TOKEN).",
+        error: "Configuracao incompleta: defina MERCADO_PAGO_ACCESS_TOKEN (aceita tambem MERCADO_PAGO_ACESS_TOKEN, MERCADOPAGO_ACCESS_TOKEN ou MP_ACCESS_TOKEN).",
       }),
     };
   }
@@ -52,7 +67,7 @@ exports.handler = async function (event) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           error: "Falha ao consultar status do pagamento.",
-          details: data && data.message ? data.message : "Erro desconhecido",
+          details: extractMercadoPagoError(data),
         }),
       };
     }
