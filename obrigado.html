@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pagamento Gerado | Digital black Ebook</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="success-wrap">
+    <section class="success-card">
+      <h1>Pedido confirmado</h1>
+      <p id="success-intro">Os dados do pedido foram gerados com sucesso.</p>
+
+      <div class="success-grid">
+        <article class="success-box">
+          <h3>Resumo</h3>
+          <p><strong>Pedido:</strong> <span id="order-id">-</span></p>
+          <p><strong>Nome:</strong> <span id="order-name">-</span></p>
+          <p><strong>Pagamento:</strong> <span id="order-method">-</span></p>
+          <p><strong>Status:</strong> <span id="order-status">-</span></p>
+          <p><strong>Valor:</strong> <span id="order-amount">-</span></p>
+        </article>
+        <article class="success-box">
+          <h3>Codigo para pagamento</h3>
+          <p id="instruction">-</p>
+          <p class="code" id="payment-code">-</p>
+          <p><strong>ID da cobranca:</strong> <span id="pix-payment-id">-</span></p>
+          <img id="pix-qr" class="pix-qr" alt="QR Code Pix" hidden>
+          <button id="copy-code" class="btn btn-primary copy-btn" type="button">Copiar codigo</button>
+          <button id="refresh-status" class="btn copy-btn" type="button">Atualizar status</button>
+          <p id="copy-feedback" class="form-message" aria-live="polite"></p>
+        </article>
+      </div>
+
+      <p>
+        Qualquer duvida, suporte em <strong>suporte@metodo7dias.com</strong>.
+      </p>
+      <a class="btn btn-primary" href="index.html">Voltar para a oferta</a>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      var orderRaw = localStorage.getItem("lowticket_last_order");
+      var intro = document.getElementById("success-intro");
+      var copyButton = document.getElementById("copy-code");
+      var refreshButton = document.getElementById("refresh-status");
+      var copyFeedback = document.getElementById("copy-feedback");
+      var pixQr = document.getElementById("pix-qr");
+      var orderStatus = document.getElementById("order-status");
+
+      function statusLabel(status) {
+        var map = {
+          approved: "Aprovado",
+          pending: "Aguardando pagamento",
+          in_process: "Em processamento",
+          rejected: "Recusado",
+          cancelled: "Cancelado",
+        };
+        return map[String(status || "").toLowerCase()] || "Aguardando pagamento";
+      }
+
+      function setStatus(status, isSuccess) {
+        orderStatus.textContent = statusLabel(status);
+        orderStatus.className = isSuccess ? "form-message success" : "";
+      }
+
+      if (!orderRaw) {
+        intro.textContent = "Nenhum pedido recente foi encontrado. Gere um pagamento na pagina principal.";
+        document.getElementById("instruction").textContent = "Acesse a oferta e finalize o formulario para continuar.";
+        copyButton.disabled = true;
+        refreshButton.disabled = true;
+        return;
+      }
+
+      var order = JSON.parse(orderRaw);
+      var selectedMethodText = {
+        pix: "Pix",
+        card: "Cartao de credito",
+        boleto: "Boleto bancario",
+      };
+
+      document.getElementById("order-id").textContent = order.id || "-";
+      document.getElementById("order-name").textContent = order.buyerName || "-";
+      document.getElementById("order-method").textContent = order.method || "-";
+      document.getElementById("order-amount").textContent = order.amount || "-";
+      document.getElementById("instruction").textContent = order.instruction || "-";
+      document.getElementById("payment-code").textContent = order.code || "-";
+      document.getElementById("pix-payment-id").textContent = order.providerPaymentId || "-";
+
+      setStatus(order.providerStatus || "pending", order.providerStatus === "approved");
+
+      if (order.selectedMethod && order.selectedMethod !== "pix") {
+        intro.textContent =
+          "O metodo " +
+          (selectedMethodText[order.selectedMethod] || "o metodo escolhido") +
+          " foi processado em Pix para manter compatibilidade entre bancos.";
+      }
+
+      if ((order.method || "").indexOf("Pix") === 0 && order.pixQrUrl) {
+        pixQr.src = order.pixQrUrl;
+        pixQr.hidden = false;
+        pixQr.onerror = function () {
+          if (order.pixQrFallbackUrl && pixQr.src !== order.pixQrFallbackUrl) {
+            pixQr.src = order.pixQrFallbackUrl;
+          }
+        };
+      }
+
+      async function refreshStatus() {
+        if (!order.providerPaymentId) {
+          copyFeedback.textContent = "Nao foi possivel identificar a cobranca para consulta.";
+          copyFeedback.className = "form-message error";
+          return;
+        }
+
+        refreshButton.disabled = true;
+        refreshButton.textContent = "Consultando...";
+
+        try {
+          var response = await fetch(
+            "/.netlify/functions/check-pix-payment?paymentId=" + encodeURIComponent(order.providerPaymentId),
+            { method: "GET" }
+          );
+          var payload = await response.json();
+
+          if (!response.ok) {
+            throw new Error(payload && payload.error ? payload.error : "Falha ao consultar status.");
+          }
+
+          order.providerStatus = payload.status || order.providerStatus;
+          order.providerStatusDetail = payload.statusDetail || order.providerStatusDetail;
+          localStorage.setItem("lowticket_last_order", JSON.stringify(order));
+
+          var approved = payload.approved === true || payload.status === "approved";
+          setStatus(order.providerStatus, approved);
+
+          if (approved) {
+            intro.textContent = "Pagamento confirmado com sucesso. A liberacao de acesso pode ser feita agora.";
+            copyFeedback.textContent = "Pagamento aprovado.";
+            copyFeedback.className = "form-message success";
+          } else {
+            copyFeedback.textContent = "Pagamento ainda nao confirmado. Tente novamente em alguns segundos.";
+            copyFeedback.className = "form-message";
+          }
+        } catch (error) {
+          copyFeedback.textContent = error.message || "Nao foi possivel consultar o status.";
+          copyFeedback.className = "form-message error";
+        } finally {
+          refreshButton.disabled = false;
+          refreshButton.textContent = "Atualizar status";
+        }
+      }
+
+      copyButton.addEventListener("click", async function () {
+        try {
+          await navigator.clipboard.writeText(order.code || "");
+          copyFeedback.textContent = "Codigo copiado.";
+          copyFeedback.className = "form-message success";
+        } catch (_error) {
+          copyFeedback.textContent = "Nao foi possivel copiar automaticamente. Copie manualmente.";
+          copyFeedback.className = "form-message error";
+        }
+      });
+
+      refreshButton.addEventListener("click", refreshStatus);
+
+      if (order.providerStatus !== "approved") {
+        setInterval(refreshStatus, 15000);
+      }
+    })();
+  </script>
+</body>
+</html>
