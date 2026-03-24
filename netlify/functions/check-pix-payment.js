@@ -1,3 +1,5 @@
+var getMercadoPagoAccessToken = require("./_lib/get-mercado-pago-token").getMercadoPagoAccessToken;
+
 exports.handler = async function (event) {
   if (event.httpMethod !== "GET") {
     return {
@@ -10,12 +12,14 @@ exports.handler = async function (event) {
     };
   }
 
-  var accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
+  var accessToken = getMercadoPagoAccessToken();
   if (!accessToken) {
     return {
       statusCode: 500,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "Configuracao incompleta." }),
+      body: JSON.stringify({
+        error: "Configuracao incompleta: defina MERCADO_PAGO_ACCESS_TOKEN (ou MERCADO_PAGO_ACESS_TOKEN).",
+      }),
     };
   }
 
